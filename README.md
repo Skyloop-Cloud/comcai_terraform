@@ -210,3 +210,4 @@ aws elasticache describe-replication-groups --replication-group-id comcai-redis
 - Region: `eu-central-1` (Frankfurt)
 - Multi-AZ deployment için 2 availability zone kullanılır
 
+

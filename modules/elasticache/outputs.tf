@@ -25,3 +25,4 @@ output "redis_arn" {
   value       = aws_elasticache_replication_group.main.arn
 }
 
+

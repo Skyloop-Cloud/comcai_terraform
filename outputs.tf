@@ -17,6 +17,12 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
+# GitHub Actions IAM Role
+output "github_actions_role_arn" {
+  description = "GitHub Actions IAM Role ARN"
+  value       = module.iam.github_actions_role_arn
+}
+
 output "public_subnet_ids" {
   description = "Public Subnet IDs"
   value       = module.vpc.public_subnet_ids

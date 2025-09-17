@@ -46,7 +46,7 @@ module "alb" {
   
   project_name      = var.project_name
   vpc_id           = module.vpc.vpc_id
-  public_subnet_ids = module.vpc.public_subnet_ids
+  public_subnet_ids = module.vpc.private_subnet_ids
   security_group_id = module.vpc.alb_sg_id
   environment       = var.environment
 }
@@ -73,4 +73,14 @@ module "api_gateway" {
   project_name = var.project_name
   environment  = var.environment
   alb_dns_name = module.alb.alb_dns_name
+}
+
+# IAM Modülü (GitHub Actions için)
+module "iam" {
+  source = "./modules/iam"
+  
+  project_name           = var.project_name
+  environment            = var.environment
+  ecs_execution_role_arn = module.ecs.execution_role_arn
+  ecs_task_role_arn      = module.ecs.task_role_arn
 }
