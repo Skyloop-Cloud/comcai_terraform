@@ -25,3 +25,27 @@ variable "environment" {
   type        = string
 }
 
+variable "private_subnet_ids" {
+  description = "Private Subnet IDs (private ALB için)"
+  type        = list(string)
+  default     = []
+}
+
+variable "alb_is_internal" {
+  description = "ALB internal olsun mu (Cloudflare Tunnels için)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_https" {
+  description = "HTTPS desteği etkinleştir"
+  type        = bool
+  default     = true
+}
+
+variable "ssl_certificate_arn" {
+  description = "SSL sertifikası ARN"
+  type        = string
+  default     = ""
+}
+

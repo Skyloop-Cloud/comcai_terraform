@@ -21,51 +21,135 @@ resource "aws_ecs_task_definition" "main" {
   family                   = "${var.project_name}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = var.enable_qdrant || var.enable_whisper ? "1024" : "256"
+  memory                   = var.enable_qdrant || var.enable_whisper ? "2048" : "512"
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
   task_role_arn           = aws_iam_role.ecs_task_role.arn
 
-  container_definitions = jsonencode([
-    {
-      name  = "${var.project_name}-container"
-      image = "${var.ecr_repository_url}:latest"
-      
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-          protocol      = "tcp"
-        }
-      ]
+  container_definitions = jsonencode(concat(
+    [
+      # Ana uygulama container'ı
+      {
+        name  = "${var.project_name}-container"
+        image = "${var.ecr_repository_url}:latest"
+        
+        portMappings = [
+          {
+            containerPort = 80
+            hostPort      = 80
+            protocol      = "tcp"
+          }
+        ]
 
-      environment = [
-        {
-          name  = "REDIS_ENDPOINT"
-          value = var.redis_endpoint
-        },
-        {
-          name  = "S3_BUCKET"
-          value = var.s3_bucket_name
-        },
-        {
-          name  = "ENVIRONMENT"
-          value = var.environment
-        }
-      ]
+        environment = concat([
+          {
+            name  = "S3_BUCKET"
+            value = var.s3_bucket_name
+          },
+          {
+            name  = "ENVIRONMENT"
+            value = var.environment
+          },
+          {
+            name  = "USE_GROQ"
+            value = tostring(var.use_groq)
+          }
+        ], var.use_groq ? [] : [
+          {
+            name  = "REDIS_ENDPOINT"
+            value = var.redis_endpoint
+          }
+        ], var.enable_qdrant ? [
+          {
+            name  = "QDRANT_ENDPOINT"
+            value = "http://localhost:6333"
+          }
+        ] : [], var.enable_whisper ? [
+          {
+            name  = "WHISPER_ENDPOINT"
+            value = "http://localhost:9000"
+          }
+        ] : [])
 
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.main.name
-          awslogs-region        = "eu-central-1"
-          awslogs-stream-prefix = "ecs"
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.main.name
+            awslogs-region        = "eu-central-1"
+            awslogs-stream-prefix = "app"
+          }
         }
+
+        essential = true
       }
+    ],
+    # Qdrant container (opsiyonel)
+    var.enable_qdrant ? [
+      {
+        name  = "${var.project_name}-qdrant"
+        image = "qdrant/qdrant:latest"
+        
+        portMappings = [
+          {
+            containerPort = 6333
+            hostPort      = 6333
+            protocol      = "tcp"
+          }
+        ]
 
-      essential = true
-    }
-  ])
+        environment = [
+          {
+            name  = "QDRANT__SERVICE__HOST"
+            value = "0.0.0.0"
+          }
+        ]
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.main.name
+            awslogs-region        = "eu-central-1"
+            awslogs-stream-prefix = "qdrant"
+          }
+        }
+
+        essential = false
+      }
+    ] : [],
+    # Whisper container (opsiyonel)
+    var.enable_whisper ? [
+      {
+        name  = "${var.project_name}-whisper"
+        image = "onerahmet/openai-whisper-asr-webservice:latest"
+        
+        portMappings = [
+          {
+            containerPort = 9000
+            hostPort      = 9000
+            protocol      = "tcp"
+          }
+        ]
+
+        environment = [
+          {
+            name  = "ASR_MODEL"
+            value = "base"
+          }
+        ]
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.main.name
+            awslogs-region        = "eu-central-1"
+            awslogs-stream-prefix = "whisper"
+          }
+        }
+
+        essential = false
+      }
+    ] : []
+  ))
 
   tags = {
     Name        = "${var.project_name}-task"

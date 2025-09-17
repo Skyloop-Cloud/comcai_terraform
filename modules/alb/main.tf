@@ -3,16 +3,17 @@
 # ALB oluştur
 resource "aws_lb" "main" {
   name               = "${var.project_name}-alb"
-  internal           = false
+  internal           = var.alb_is_internal
   load_balancer_type = "application"
   security_groups    = [var.security_group_id]
-  subnets            = var.public_subnet_ids
+  subnets            = var.alb_is_internal ? var.private_subnet_ids : var.public_subnet_ids
 
   enable_deletion_protection = false
 
   tags = {
     Name        = "${var.project_name}-alb"
     Environment = var.environment
+    Type        = var.alb_is_internal ? "internal" : "internet-facing"
     "berkay-test" = "true"
   }
 }
@@ -44,11 +45,50 @@ resource "aws_lb_target_group" "main" {
   }
 }
 
-# ALB Listener oluştur
-resource "aws_lb_listener" "main" {
+# HTTP ALB Listener (HTTPS etkinse redirect eder)
+resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"
+
+  default_action {
+    type = var.enable_https ? "redirect" : "forward"
+    
+    dynamic "redirect" {
+      for_each = var.enable_https ? [1] : []
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+    
+    dynamic "forward" {
+      for_each = var.enable_https ? [] : [1]
+      content {
+        target_group {
+          arn = aws_lb_target_group.main.arn
+        }
+      }
+    }
+  }
+
+  tags = {
+    Name        = "${var.project_name}-http-listener"
+    Environment = var.environment
+    "berkay-test" = "true"
+  }
+}
+
+# HTTPS ALB Listener (opsiyonel)
+resource "aws_lb_listener" "https" {
+  count = var.enable_https && var.ssl_certificate_arn != "" ? 1 : 0
+  
+  load_balancer_arn = aws_lb.main.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.ssl_certificate_arn
 
   default_action {
     type             = "forward"
@@ -56,7 +96,7 @@ resource "aws_lb_listener" "main" {
   }
 
   tags = {
-    Name        = "${var.project_name}-listener"
+    Name        = "${var.project_name}-https-listener"
     Environment = var.environment
     "berkay-test" = "true"
   }

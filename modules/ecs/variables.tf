@@ -45,3 +45,21 @@ variable "environment" {
   type        = string
 }
 
+variable "enable_qdrant" {
+  description = "Qdrant vector database container'ı ekle"
+  type        = bool
+  default     = false
+}
+
+variable "enable_whisper" {
+  description = "Whisper speech-to-text container'ı ekle"
+  type        = bool
+  default     = false
+}
+
+variable "use_groq" {
+  description = "GROQ SaaS endpoints kullan (Redis opsiyonel yapar)"
+  type        = bool
+  default     = false
+}
+

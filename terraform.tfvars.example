@@ -1,0 +1,24 @@
+# Comcai Terraform Değişkenleri
+# Bu dosyayı terraform.tfvars olarak kopyalayıp değerleri güncelleyin
+
+# Temel ayarlar
+project_name = "comcai-berkay-test"
+environment  = "dev"
+aws_region   = "eu-central-1"
+
+# Networking
+vpc_cidr               = "10.0.0.0/16"
+public_subnet_cidrs    = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs   = ["10.0.10.0/24", "10.0.20.0/24"]
+availability_zones     = ["eu-central-1a", "eu-central-1b"]
+
+# Güvenlik ve TLS
+enable_https           = true
+ssl_certificate_arn    = ""  # ACM'den aldığınız sertifika ARN'ini buraya yazın
+restrict_to_cloudflare = false  # Cloudflare kullanıyorsanız true yapın
+alb_is_internal        = false  # Cloudflare Tunnels kullanıyorsanız true yapın
+
+# Ek servisler
+enable_qdrant  = false  # Vector database gerekirse true
+enable_whisper = false  # Speech-to-text gerekirse true
+use_groq       = false  # GROQ SaaS kullanıyorsanız true (Redis'i opsiyonel yapar)

@@ -30,3 +30,15 @@ variable "environment" {
   type        = string
 }
 
+variable "restrict_to_cloudflare" {
+  description = "Trafiği sadece Cloudflare IP'leriyle kısıtla"
+  type        = bool
+  default     = false
+}
+
+variable "cloudflare_ipv4_cidrs" {
+  description = "Cloudflare IPv4 CIDR blokları"
+  type        = list(string)
+  default     = []
+}
+
