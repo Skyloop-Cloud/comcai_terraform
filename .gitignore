@@ -1,0 +1,4 @@
+.terraform/
+.env
+vispeahen-tf/
+.csv
