@@ -1,7 +1,5 @@
 # Comcai Terraform Şablonu
 
-Modern web uygulaması için tam AWS altyapısı. Görseldeki mimariye uygun olarak tasarlanmıştır.
-
 ## 🏗️ Mimari Bileşenleri
 
 ### **API Gateway** → **ALB** → **ECS** → **ElastiCache Redis**
