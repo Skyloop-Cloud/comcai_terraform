@@ -19,10 +19,11 @@ resource "aws_lb" "main" {
 
 # Target Group oluştur
 resource "aws_lb_target_group" "main" {
-  name     = "${var.project_name}-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.project_name}-tg-ip"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
 
   health_check {
     enabled             = true
@@ -37,7 +38,7 @@ resource "aws_lb_target_group" "main" {
   }
 
   tags = {
-    Name        = "${var.project_name}-tg"
+    Name        = "${var.project_name}-tg-ip"
     Environment = var.environment
     "berkay-test" = "true"
   }
